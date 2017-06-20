@@ -1,0 +1,7 @@
+#!/bin/sh
+ncverilog -q -R +nc64bit +name+snap_mkJtag +nclibdirname+INCA_libs_mkJtag $*
+status=$?
+if [ "$status" != "0" ]; then
+    echo "ERROR: cannot simulate design" >&2
+    exit $status
+fi

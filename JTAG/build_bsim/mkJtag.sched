@@ -1,0 +1,316 @@
+=== Generated schedule for mkJtag ===
+
+Rule schedule
+-------------
+Rule: cross_tms_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_count_tms_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_tms_vec_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_tdi_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_count_tdi_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_tdi_vec_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_latch_dba_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_latch_dtm_control_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_latch_bypass_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_latch_idcode_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_latch_ir_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_dba_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_dtm_control_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_bypass_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_idcode_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_instruction_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_update_dr_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_update_ir_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_test_logic_reset_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_shift_dr_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cross_shift_ir_clock_domain_crossing
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: rl_state_1
+Predicate: test_logic_reset
+Blocking rules: (none)
+ 
+Rule: rl_state_2
+Predicate: run_test_idle
+Blocking rules: (none)
+ 
+Rule: rl_state_3
+Predicate: select_dr_scan
+Blocking rules: (none)
+ 
+Rule: rl_state_4
+Predicate: select_ir_scan
+Blocking rules: (none)
+ 
+Rule: rl_state_5
+Predicate: capture_dr
+Blocking rules: (none)
+ 
+Rule: rl_state_6
+Predicate: capture_ir
+Blocking rules: (none)
+ 
+Rule: rl_state_7
+Predicate: shift_dr
+Blocking rules: (none)
+ 
+Rule: rl_state_8
+Predicate: shift_ir
+Blocking rules: (none)
+ 
+Rule: rl_state_9
+Predicate: exit1_dr
+Blocking rules: (none)
+ 
+Rule: rl_state_10
+Predicate: exit1_ir
+Blocking rules: (none)
+ 
+Rule: rl_state_11
+Predicate: pause_dr
+Blocking rules: (none)
+ 
+Rule: rl_state_12
+Predicate: pause_ir
+Blocking rules: (none)
+ 
+Rule: rl_state_13
+Predicate: exit2_ir
+Blocking rules: (none)
+ 
+Rule: rl_state_14
+Predicate: exit2_dr
+Blocking rules: (none)
+ 
+Rule: rl_state_15
+Predicate: update_dr
+Blocking rules: (none)
+ 
+Rule: rl_state_16
+Predicate: update_ir
+Blocking rules: (none)
+ 
+Rule: rl_print_state
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: rl_instruction
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: rl_update_ir
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: rl_data
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: rl_update_data
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: rl_shift_out
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: rl_assign_op
+Predicate: cross_shift_ir.wget || cross_shift_dr.wget
+Blocking rules: (none)
+ 
+Rule: rl_inc_count
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: rl_tp
+Predicate: cross_count_tms.wget < 5'd21
+Blocking rules: (none)
+ 
+Rule: rl_stop
+Predicate: count_tms == 5'd21
+Blocking rules: (none)
+ 
+Rule: __me_check_21
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: __me_check_22
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: __me_check_23
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: __me_check_24
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: __me_check_25
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: __me_check_26
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: __me_check_27
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: __me_check_28
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: __me_check_29
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: __me_check_30
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: __me_check_31
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: __me_check_32
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: __me_check_33
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: __me_check_34
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: __me_check_35
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: rl_print_state,
+			 rl_state_2,
+			 rl_state_11,
+			 rl_state_12,
+			 rl_assign_op,
+			 rl_shift_out,
+			 rl_stop,
+			 cross_tms_clock_domain_crossing,
+			 rl_tp,
+			 cross_count_tms_clock_domain_crossing,
+			 cross_tms_vec_clock_domain_crossing,
+			 cross_tdi_clock_domain_crossing,
+			 cross_count_tdi_clock_domain_crossing,
+			 cross_tdi_vec_clock_domain_crossing,
+			 cross_latch_dba_clock_domain_crossing,
+			 cross_latch_dtm_control_clock_domain_crossing,
+			 cross_latch_bypass_clock_domain_crossing,
+			 cross_latch_idcode_clock_domain_crossing,
+			 rl_update_data,
+			 cross_latch_ir_clock_domain_crossing,
+			 rl_update_ir,
+			 cross_dba_clock_domain_crossing,
+			 cross_dtm_control_clock_domain_crossing,
+			 cross_bypass_clock_domain_crossing,
+			 cross_idcode_clock_domain_crossing,
+			 rl_data,
+			 rl_state_3,
+			 cross_instruction_clock_domain_crossing,
+			 rl_instruction,
+			 rl_inc_count,
+			 cross_update_dr_clock_domain_crossing,
+			 rl_state_9,
+			 rl_state_15,
+			 cross_update_ir_clock_domain_crossing,
+			 rl_state_10,
+			 rl_state_16,
+			 __me_check_35,
+			 cross_test_logic_reset_clock_domain_crossing,
+			 rl_state_1,
+			 rl_state_4,
+			 cross_shift_dr_clock_domain_crossing,
+			 rl_state_5,
+			 rl_state_7,
+			 rl_state_14,
+			 __me_check_34,
+			 cross_shift_ir_clock_domain_crossing,
+			 rl_state_6,
+			 rl_state_8,
+			 rl_state_13,
+			 __me_check_21,
+			 __me_check_22,
+			 __me_check_23,
+			 __me_check_24,
+			 __me_check_25,
+			 __me_check_26,
+			 __me_check_28,
+			 __me_check_27,
+			 __me_check_29,
+			 __me_check_30,
+			 __me_check_31,
+			 __me_check_32,
+			 __me_check_33
+
+======================================
