@@ -33,8 +33,8 @@ VSIM ?= ncverilog
 # ================================================================
 # You should not have to change anything below this line
 
-TOPFILE   ?= $(DISTRO)/$(EG)/src_BSV/Jtag.bsv
-TOPMODULE ?= mkJtag
+TOPFILE   ?= $(DISTRO)/$(EG)/src_BSV/DM_Interface.bsv
+TOPMODULE ?= mkDM_Interface
 
 BSC_COMP_FLAGS = -elab -keep-fires -aggressive-conditions -no-warn-action-shadowing
 BSC_LINK_FLAGS = -keep-fires
