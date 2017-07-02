@@ -46,13 +46,15 @@ Reg#(Bit#(2)) read <- mkReg(0) ;
 Reg#(Bit#(2)) write <- mkReg(0) ;
 Reg#(Bit#(2)) reset <- mkReg(0) ;
 Reg#(Bit#(2)) query_status <- mkReg(0) ;
+Reg#(Bit#(3)) step <- mkReg(0) ;
 
+Reg#(Bit#(10)) delay <-mkReg(0) ;
 
 //understanding commands from user
 //1. halt <hart_id> 2. resume <hart_id> 
 //hart_id reqd for each?? 3. read <reg_num> 4. read <memory_locn> 5. step 6. break <pc/line_num>
 //(*mutually_exclusive = "rl_understand_cmd,rl_dba_type"*)
-rule rl_understand_cmd(halt == 0 && resume == 0 && read == 0 && write == 0 && reset == 0 && query_status == 0); // 1 operation at a time
+rule rl_understand_cmd(halt == 0 && resume == 0 && read == 0 && write == 0 && reset == 0 && query_status == 0 && step == 0); // 1 operation at a time
 	let inp = fifo_in.first; fifo_in.deq ;
 	let cmd = inp.cmd ;
 	in <= inp ;
@@ -72,17 +74,21 @@ rule rl_understand_cmd(halt == 0 && resume == 0 && read == 0 && write == 0 && re
 	// read register
 	else if(cmd == 3) begin
 		read <= 1 ;
-		$display("readd");
+		$display($time,"readd");
 	end
 	// write reg
 	else if(cmd == 4) begin
 		write <= 1 ;
-		$display("write");
+		$display($time,"write");
 	end
-
+	//reset
 	else if(cmd == 5)begin
 		reset <= 1 ;
 		temp_dmcontrol[29] = 1 ;
+	end
+	//step
+	else if(cmd == 6)begin
+		step <= 1 ;
 	end
 
 	dmcontrol <= temp_dmcontrol ;
@@ -90,14 +96,14 @@ endrule
 
 // rule tp;
 // 	if(flag == 1 && take_args == True)
-// 	begin $display("a"); end
+// 	begin $display($time,"a"); end
 // endrule
 
-(*mutually_exclusive = "rl_halt_req,rl_halt_rsp,rl_resume_req,rl_resume_rsp,rl_reset,rl_reset_rsp,rl_access_reg,rl_access_reg_rsp,rl_query_cpu_status,rl_get_cpu_status"*)
+(*mutually_exclusive = "rl_halt_req,rl_halt_rsp,rl_resume_req,rl_resume_rsp,rl_reset,rl_reset_rsp,rl_access_reg,rl_access_reg_rsp,rl_query_cpu_status,rl_get_cpu_status,rl_step_req,rl_step_rsp"*)
 rule rl_halt_req(halt == 1 && dmcontrol[31] == 1 && dmstatus[9] != 1); // haltreq reqd and not already halted
 	Control_Fabric_Req x ;
 	x = Control_Fabric_Req{op:CONTROL_FABRIC_OP_RD,addr:0,word:0} ;
-	$display("Halt request sent");
+	$display($time,"Halt request sent");
 	x.addr = ucsr_addr_cpu_stop ;
 	x.op = CONTROL_FABRIC_OP_WR ;
 	x.word = 0 ;
@@ -110,19 +116,18 @@ rule rl_halt_rsp(halt == 2 && dmcontrol[31] == 0 && dmstatus[9] != 1) ;
 	let rsp = q2.first ;q2.deq ;
 	if(rsp.status == CONTROL_FABRIC_RSP_OK)begin
 		if(rsp.word == extend(ucsr_addr_cpu_stop))begin
-			$display("CPU stop request acknowledged");						
+			$display($time,"CPU stop request acknowledged");						
 			query_status <= 1 ;
 			halt <= 3 ;
 		end
 	end
-	
 endrule
 
 rule rl_query_cpu_status(query_status == 1) ;
 	Control_Fabric_Req x ;
 	x = Control_Fabric_Req{op:CONTROL_FABRIC_OP_RD,addr:ucsr_addr_cpu_stop_reason,word:0} ;
 	q1.enq(x) ;
-	$display("Querying CPU status");
+	$display($time,"Querying CPU status");
 	query_status <= 2; 
 endrule
 
@@ -130,21 +135,33 @@ rule rl_get_cpu_status(query_status == 2);
 	let rsp = q2.first ;q2.deq ;
 	if(rsp.status == CONTROL_FABRIC_RSP_OK)begin
 		if(rsp.word == 'h6)begin // 6 --> CPU_BUSY
-			$display("CPU Busy");			
-			query_status <= 1 ;
+			if(halt == 3 || step == 3) begin
+				$display($time,"CPU Busy");			
+				query_status <= 1 ;
+			end
+			else if(resume == 3) begin
+				$display($time,"CPU resumed");
+				query_status <= 0 ;
+				dmstatus[17] <= 1 ; // resume acknowledged
+				resume <= 0 ;
+			end
 		end
-		else if(rsp.word == 'h5) begin
-			$display("CPU Stopped");
-			query_status <= 0 ;
-			dmstatus[9] <= 1 ;
-			halt <= 0 ;		
+		else begin
+			if(halt == 3 || step == 3) begin
+				$display($time,"CPU Stopped");
+				query_status <= 0 ;
+				dmstatus[9] <= 1 ;
+				if(halt==3)begin halt <= 0 ;end 
+				if(step==3)begin step <= 0 ;end
+			end
+			else if(resume == 3) begin
+				$display($time,"CPU in stop state");			
+				query_status <= 1 ;	
+			end		
 		end
 	end
 	else begin
-		$display("CPU Stopped");
-		query_status <= 0 ;
-		dmstatus[9] <= 1 ;
-		halt <= 0 ;		
+		$display($time,"error reading cpu status");				
 	end
 endrule
 
@@ -163,15 +180,15 @@ rule rl_resume_rsp(resume == 2 && dmcontrol[30] == 0 && dmstatus[9] == 1); // ha
 	let rsp = q2.first ;q2.deq ;
 	if(rsp.status == CONTROL_FABRIC_RSP_OK)begin
 		if(rsp.word == extend(ucsr_addr_cpu_continue))begin
-			$display("CPU resume request acknowledged");
-			resume <= 0 ;
+			$display($time,"CPU resume request acknowledged");
+			resume <= 3 ;
 			query_status <= 1 ; 
 		end
 	end
 endrule
 
 rule rl_reset(reset == 1 && dmcontrol[29] == 1 && dmstatus[9] == 1); // CPU should be stopped before reset
-	$display("Resetting CPU");
+	$display($time,"Resetting CPU");
 	Control_Fabric_Req x ;
 	x = Control_Fabric_Req{op:CONTROL_FABRIC_OP_RD,addr:0,word:0} ;
 	x.addr = ucsr_addr_reset ;
@@ -185,7 +202,7 @@ rule rl_reset_rsp(reset == 2 && dmcontrol[29] == 1 && dmstatus[9] == 1); // CPU 
 	let rsp = q2.first ;q2.deq ;
 	if(rsp.status == CONTROL_FABRIC_RSP_OK)begin
 		if(rsp.word == extend(ucsr_addr_reset))begin
-			$display("CPU reset.");
+			$display($time,"CPU reset.");
 			reset <= 0 ;
 			dmstatus[29] <= 0 ;
 		end
@@ -202,14 +219,14 @@ rule rl_access_reg((read == 1 || write == 1) && dmstatus[9] == 1); // cpu should
 		x.op = CONTROL_FABRIC_OP_RD;
 		x.word = 0;
 		read <= 2 ;
-		$display("Request to read reg no. %d sent",in.args[0][15:0]);
+		$display($time,"Request to read reg no. %d sent",in.args[0][15:0]);
 	end
 	else begin
 		x.addr = ucsr_addr_cpu_x0 + truncate(in.args[0]) ;
 		x.op = CONTROL_FABRIC_OP_WR;
 		x.word = i.args[1] ;
 		write <= 2 ;
-		$display("Request to write reg no. %d with value %d sent",in.args[0][15:0],in.args[1][31:0]);
+		$display($time,"Request to write reg no. %d with value %d sent",in.args[0][15:0],in.args[1][31:0]);
 	end
 	q1.enq(x) ;
 endrule
@@ -218,19 +235,34 @@ rule rl_access_reg_rsp((read == 2 || write == 2) && dmstatus[9] == 1); // cpu sh
 	let rsp = q2.first ;q2.deq ;
 	if(rsp.status == CONTROL_FABRIC_RSP_OK)begin
 		if(read == 2)begin
-			$display("Value of register is %d",rsp.word[31:0]);
+			$display($time,"Value of register is %d",rsp.word[31:0]);
 			read <= 0 ;
 		end
 		else begin
-			$display("Register write request acknowledged");
+			$display($time,"Register write request acknowledged");
 			write <= 0 ;
 		end
 	end
 endrule
 
 
+rule rl_step_req(step == 1 && dmstatus[9] == 1);
+	Control_Fabric_Req x=? ;
+	x.op = CONTROL_FABRIC_OP_WR ;
+	x.addr = ucsr_addr_cpu_step ;
+	x.word = 0 ;
+	step <= 2 ;	
+	q1.enq(x) ;
+endrule
 
-
+rule rl_step_rsp(step == 2 && dmstatus[9] == 1) ;
+	let rsp = q2.first; q2.deq ;
+	if(rsp.status == CONTROL_FABRIC_RSP_OK)begin
+		dmstatus[9] <= 1 ;
+		$display($time,"Step request acknowledged");
+		step <= 3 ; query_status <= 1 ;
+	end
+endrule
 
 
 
@@ -273,14 +305,14 @@ endmethod
 
 // 	if (resumereq == 1 ) // && isHartHalted(hartsel)==1	//Hart with hart ID hartsel is not currently harted
 // 	begin
-// 		$display("hey not there");
+// 		$display($time,"hey not there");
 		
 // 	end
 
 // 	//soft-reset
 // 	if (hartreset == 1) 						//Hart with hart ID hartsel is not currently harted
 // 	begin	
-// 		$display("had");
+// 		$display($time,"had");
 // 		x.addr = 16'h1001 ;
 // 		x.word = 0 ;
 // 		x.op = CONTROL_FABRIC_OP_WR ;
@@ -290,7 +322,7 @@ endmethod
 // 	Bit #(2) op=dba[1:0];
 // 	if (op==0)
 // 	begin
-// 		$display("Bhaad me jao");
+// 		$display($time,"Bhaad me jao");
 // 	end
 // 	if (op==1)
 // 	begin
@@ -299,7 +331,7 @@ endmethod
 // 		 x.addr=dba[49:34] ;
 // 		 x.op=CONTROL_FABRIC_OP_RD;
 // 		 x.word=?;
-// 		 $display("asfaf");
+// 		 $display($time,"asfaf");
 // 		 dba <= 0 ; // reset dba		 
 // 	end
 // 	if (op==2)
@@ -315,9 +347,9 @@ endmethod
 
 // /*
 // rule rl_dba_type(flag == 1 && take_args== True) ;
-// 	$display("here");
+// 	$display($time,"here");
 // 	let dba <- handle1.get_arg();
-// 	$display("data taken");
+// 	$display($time,"data taken");
 	
 
 // endrule
@@ -332,11 +364,11 @@ endmethod
 // 	begin
 // 		handle.put(ans.word);
 // 		ready_read<=1;
-// 		$display("Read performed correctly");
+// 		$display($time,"Read performed correctly");
 // 	end
 // 	else
 // 	begin
-// 		$display("Error in read");
+// 		$display($time,"Error in read");
 // 	end
 // endrule
 
@@ -346,21 +378,21 @@ endmethod
 // 	Bit#(32) temp_dmstatus = dmstatus ;
 // 	if(rsp.status == CONTROL_FABRIC_RSP_OK)begin
 // 		if(rsp.word == extend(ucsr_addr_cpu_continue))begin
-// 			$display("CPU resumed.");
+// 			$display($time,"CPU resumed.");
 // 			temp_dmstatus[17] = 1 ;
 // 		end		
 // 		if(rsp.word == 'h1001)begin
-// 			$display("CPU reset.");			
+// 			$display($time,"CPU reset.");			
 // 		end
 // 	end
 // 	// else begin
-// 	// 	$display("Error response from CPU");
+// 	// 	$display($time,"Error response from CPU");
 // 	// end  
 // 	dmstatus <= temp_dmstatus ;
 // endrule
 
 // rule rl_print(flag == 1) ;
-// 	$display("%d",dmcontrol);
+// 	$display($time,"%d",dmcontrol);
 // 	flag <= 0 ;
 // 	// $finish;
 // endrule

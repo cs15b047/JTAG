@@ -24,8 +24,8 @@ rule rl_put_inp(given1 < 2);
 		num_args = 0 ;
 	end
 	else if(given1 == 1)begin
-		temp1 = 'h4 ;
-		num_args = 2 ;
+		temp1 = 'h6 ;
+		num_args = 0 ;
 	end
 	Bit#(Dba_width) temp2=0;
 	if(num_args != 0) begin
