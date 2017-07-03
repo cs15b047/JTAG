@@ -9,10 +9,7 @@ import axi4::*;
 
 module mkTb(Empty);
 
-DM_Interface_IFC dbg <- mkDM_Interface() ;
 Ifc_proc cpu <- mkproc() ;
-
-mkConnection(cpu.server_control,dbg.debugger) ;
 
 Reg#(Bit#(2)) given1 <- mkReg(0) ;
 
@@ -25,7 +22,7 @@ rule rl_put_inp(given1 < 2);
 	end
 	else if(given1 == 1)begin
 		temp1 = 'h6 ;
-		num_args = 0 ;
+		num_args = 1 ;
 	end
 	Bit#(Dba_width) temp2=0;
 	if(num_args != 0) begin
@@ -33,7 +30,7 @@ rule rl_put_inp(given1 < 2);
 		temp2[49:34] = 16'h1 ;
 		temp2[33:2] = 'h5 ;
 	end
-	dbg.put(temp1,temp2,num_args) ;
+	cpu.put(temp1,temp2,num_args) ;
 	given1 <= given1 + 1 ;	
 	$display("%d",given1);	
 endrule
