@@ -23,44 +23,44 @@ FIFOF#(Control_Fabric_Rsp) response_from_cpu <- mkPipelineFIFOF ;
 
 
 //Registers from debug spec .13 start here 
-Vector #( 12 , Reg#(Bit #(32))) abstract_Data <- replicateM(mkReg(0)) ;
-Reg #(Bit #(32) ) debug_Module_Control <-mkReg (0) ;
-Reg #(Bit #(32) ) debug_Module_Status <-mkReg (0) ;
+	Vector #( 12 , Reg#(Bit #(32))) abstract_Data <- replicateM(mkReg(0)) ;
+	Reg #(Bit #(32) ) debug_Module_Control <-mkReg (0) ;
+	Reg #(Bit #(32) ) debug_Module_Status <-mkReg (0) ;
 
-//The registers after this line till next comment are for only such cases which have multiple harts
-Reg #(Bit #(32) ) hart_Info <-mkReg (0) ;
-Reg #(Bit #(32) ) hart_Summary <-mkReg (0) ;
-Reg #(Bit #(32) ) hart_Array_Window_Select <-mkReg (0);
-Reg #(Bit #(32) ) hart_Array_Window <-mkReg (0);
-// Hart registers end here 
-Reg #(Bit #(32) ) abstract_Control_And_Status <-mkReg (0) ;
-Reg #(Bit #(32) )  abstract_Commands <-mkReg (0) ;
-Reg #(Bit #(32) ) abstract_Command_Autoexe <-mkReg(0) ;
-Reg #(Bit #(32) )  configuration_String_Addr_0<-mkReg (0) ;
-Reg #(Bit #(32) )  configuration_String_Addr_1<-mkReg (0) ;
-Reg #(Bit #(32) )  configuration_String_Addr_2<-mkReg (0) ;
-Reg #(Bit #(32) )  configuration_String_Addr_3<-mkReg (0) ;
-Vector #( 16 , Reg #(Bit #(32) )) program_Buffer <- replicateM(mkReg(0)) ;
-Reg #(Bit #(32) )  authentication_Data <- mkReg (0) ;
-Reg #(Bit #(32) )  serial_Control_And_Status <-mkReg (0) ;
-Reg #(Bit #(32) )  serial_TX_Data <-mkReg (0) ;
-Reg #(Bit #(32) )  serial_RX_Data <-mkReg (0) ;
-Reg #(Bit #(32) )  system_Bus_Access_Control_And_Status <-mkReg (0) ;
-Vector #( 3 , Reg #(Bit #(32) )) system_Bus_Address <- replicateM(mkReg(0)) ;
-Vector #( 4 , Reg #(Bit #(32) )) system_Bus_Data <- replicateM(mkReg(0)) ;
+	//The registers after this line till next comment are for only such cases which have multiple harts
+	Reg #(Bit #(32) ) hart_Info <-mkReg (0) ;
+	Reg #(Bit #(32) ) hart_Summary <-mkReg (0) ;
+	Reg #(Bit #(32) ) hart_Array_Window_Select <-mkReg (0);
+	Reg #(Bit #(32) ) hart_Array_Window <-mkReg (0);
+	// Hart registers end here 
+	Reg #(Bit #(32) ) abstract_Control_And_Status <-mkReg (0) ;
+	Reg #(Bit #(32) )  abstract_Commands <-mkReg (0) ;
+	Reg #(Bit #(32) ) abstract_Command_Autoexe <-mkReg(0) ;
+	Reg #(Bit #(32) )  configuration_String_Addr_0<-mkReg (0) ;
+	Reg #(Bit #(32) )  configuration_String_Addr_1<-mkReg (0) ;
+	Reg #(Bit #(32) )  configuration_String_Addr_2<-mkReg (0) ;
+	Reg #(Bit #(32) )  configuration_String_Addr_3<-mkReg (0) ;
+	Vector #( 16 , Reg #(Bit #(32) )) program_Buffer <- replicateM(mkReg(0)) ;
+	Reg #(Bit #(32) )  authentication_Data <- mkReg (0) ;
+	Reg #(Bit #(32) )  serial_Control_And_Status <-mkReg (0) ;
+	Reg #(Bit #(32) )  serial_TX_Data <-mkReg (0) ;
+	Reg #(Bit #(32) )  serial_RX_Data <-mkReg (0) ;
+	Reg #(Bit #(32) )  system_Bus_Access_Control_And_Status <-mkReg (0) ;
+	Vector #( 3 , Reg #(Bit #(32) )) system_Bus_Address <- replicateM(mkReg(0)) ;
+	Vector #( 4 , Reg #(Bit #(32) )) system_Bus_Data <- replicateM(mkReg(0)) ;
 
-Reg#(Bit#(32)) debug_control_and_status <- mkReg(0);
-// Reg#(Bit#(XLEN)) debug_pc <-mkReg(0) ;
-Reg#(Bit#(32)) debug_scratch_0 <- mkReg(0) ;
-Reg#(Bit#(32)) debug_scratch_1 <- mkReg(0) ;
+	Reg#(Bit#(32)) debug_control_and_status <- mkReg(0);
+	// Reg#(Bit#(XLEN)) debug_pc <-mkReg(0) ;
+	Reg#(Bit#(32)) debug_scratch_0 <- mkReg(0) ;
+	Reg#(Bit#(32)) debug_scratch_1 <- mkReg(0) ;
 
-//Registers from debug spec .13 end here 
+	//Registers from debug spec .13 end here 
 
-Reg #(Bit#(1)) continuously_query_cpu <-mkReg(0) ;
+	Reg #(Bit#(1)) continuously_query_cpu <-mkReg(0) ;
 
 (*conflict_free = "halt,rl_query_cpu_status,response_collector,resume"*)
 
-rule halt(debug_Module_Control[31]==1 && debug_Module_Status[9]==0);	
+rule halt(debug_Module_Control[31] == 1 && debug_Module_Status[9] == 0);	
 	Control_Fabric_Req request ;
 	request = Control_Fabric_Req{op:CONTROL_FABRIC_OP_RD,addr:0,word:0} ;
 	$display($time,"Halt request sent");
@@ -93,7 +93,7 @@ rule response_collector ;
 		$display($time,"Halted");
 		continuously_query_cpu<=0;
 	end
-	if(response.word=='h6 && response.op == CONTROL_FABRIC_OP_RD&&debug_Module_Status[9]==1)
+	if(response.word=='h6 && response.op == CONTROL_FABRIC_OP_RD && debug_Module_Status[9]==1)
 	begin
 		debug_Module_Status[9]<=0;
 		$display($time,"Resumed");
@@ -101,7 +101,7 @@ rule response_collector ;
 	end
 endrule
 
-rule resume (debug_Module_Status[9]==1&&debug_Module_Control[30]==1);
+rule resume (debug_Module_Status[9] == 1 && debug_Module_Control[30] == 1);
 	Control_Fabric_Req x=? ;
 	x.addr = ucsr_addr_cpu_continue ;
 	x.op = CONTROL_FABRIC_OP_WR;
